@@ -1,6 +1,7 @@
 (ns lazada.core
   (:import java.net.URL)
-  (:require [net.cgrand.enlive-html :as html]))
+  (:require [net.cgrand.enlive-html :as html]
+            [clojure.data.json :as json]))
 
 
 ;; index page
@@ -24,15 +25,6 @@
    [:.navLayer :> :.navLayerSub :> [[:div (html/attr-starts :class "sbnc")]] :> :.bsnclco :> :a.bsncLink]))
 
 
-;; crawl lazada.com.ph. recursively pull in all pages, record
-;;   i. top category (.catArrow)
-;;   ii. sub-category (.bsnch, .bsnclco)
-;;   iii. target category (.bsncLink)
-
-;; export to edn, json, csv, html
-
-
-
 ;; find all products in each category
 (def subindex
   (-> "http://www.lazada.com.ph/shop-dslr-slr" URL. html/html-resource))
@@ -45,6 +37,18 @@
 
 ;; record first 5 in each category
 (def sublink-first-five (take 5 sublink-names))
+
+
+;; export to edn, json, html
+(spit "xx.edn" (with-out-str (pprint xx)))
+(spit "xx.json" (with-out-str (pprint (json/write-str {:a 1 :b 2}))))
+
+
+
+;; crawl lazada.com.ph. recursively pull in all pages, record
+;;   i. top category (.catArrow)
+;;   ii. sub-category (.bsnch, .bsnclco)
+;;   iii. target category (.bsncLink)
 
 
 ;; A) Get index page
