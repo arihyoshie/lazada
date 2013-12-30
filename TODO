@@ -1,0 +1,6 @@
+-- crawl lazada.com.ph. recursively pull in all pages
+-- find category divs
+-- find all products in each category
+-- record first 5 in each category
+
+-- export to edn, json, csv, html
