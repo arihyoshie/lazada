@@ -14,7 +14,6 @@
 
 
 ;; get sibling .navLayer, for each top category
-(def ff (first nodes))
 (def nl (html/select lindex [(html/left :a.catArrow)]))
 
 
