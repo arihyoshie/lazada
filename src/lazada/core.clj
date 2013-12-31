@@ -4,38 +4,23 @@
             [clojure.data.json :as json]))
 
 
-;; index page
-(def lindex
-  (-> "http://lazada.com.ph" URL. html/html-resource))
-
-
-;; get top categories
-(def nodes (html/select lindex [:a.catArrow]))
-
-
-;; get sibling .navLayer, for each top category
-(def nl (html/select lindex [(html/left :a.catArrow)]))
-
-
-;; .navLayer > .navLayerSub > .sbnc* > .bsnclco > a.bsncLink
-(def blinks
-  (html/select
-   nl
-   [:.navLayer :> :.navLayerSub :> [[:div (html/attr-starts :class "sbnc")]] :> :.bsnclco :> :a.bsncLink]))
+(defn get-page [purl]
+  (println "Getting page: " purl)
+  (-> purl URL. html/html-resource))
 
 
 ;; find all products in each category
-(def subindex
+#_(def subindex
   (-> "http://www.lazada.com.ph/shop-dslr-slr" URL. html/html-resource))
 
-(def sublinks
+#_(def sublinks
   (html/select subindex [:#productsCatalog :li :ul.subGroupProducts :li.unit :.itm :a.itm-link]))
 
-(def sublink-names (map #(-> % :attrs :title)
+#_(def sublink-names (map #(-> % :attrs :title)
                         sublinks))
 
 ;; record first 5 in each category
-(def sublink-first-five (take 5 sublink-names))
+#_(def sublink-first-five (take 5 sublink-names))
 
 
 ;; export to edn, json, html
