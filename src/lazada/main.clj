@@ -50,7 +50,7 @@
 
 (defn build-sub-tree [tree]
   (reduce (fn [rslt ech]
-            (let [new-child (assoc ech :children (build-sub-node (:children ech)))]
+            (let [new-child (build-sub-node ech)]
               (conj rslt new-child)))
             []
             tree))
