@@ -1,7 +1,13 @@
 (ns lazada.main
   (:import java.net.URL)
   (:require [net.cgrand.enlive-html :as html]
-            [clojure.data.json :as json]))
+            [clojure.data.json :as json]
+            [lazada.top :as top]))
+
+
+(defn list-fns-in-ns [input-ns]
+  (require input-ns)
+  (keys (ns-publics input-ns)))
 
 
 ;; ===
@@ -11,39 +17,33 @@
 
 
 ;; ===
-(defn get-top-siblings [page]
-  (->> (html/select page [(html/left :a.catArrow)])
-       (remove #(= % "\n"))))
+(defn get-sub-categories [nodes]
 
-(defn get-top-category-names [nodes]
-  (map html/text
-       (html/select nodes [:a.catArrow :> :span.navSubTxt])))
+  (let [sub-categories (html/select
+                        nodes
+                        [:.navLayer :> :.navLayerSub :> [[:div (html/attr-starts :class "sbnc")]]])
 
-(defn get-top-categories [page]
-  (html/select page [:li.multiMenu]))
+        ;; discard if there's an .sbncco (not a category)
+        highlight-check #(> 0
+                            (count (html/select % [:.sbncco])))]
+
+    (remove highlight-check sub-categories)))
+
+(defn build-sub-tree [tree]
+
+  (let [getsub-fn (fn [inp]
+                    (assoc inp
+                      :children
+                      (get-sub-categories (:children inp))))]
+
+    (map getsub-fn tree-root)))
 
 
-(defn build-tree-root [url]
-  (let [top-page (get-page url)
-        top-categories (get-top-categories top-page)
-
-        name-fn #(get-top-category-names %)
-        children-fn #(get-top-siblings %)]
-
-    (map (fn [inp]
-           {:name (first (name-fn inp))
-            :children (children-fn inp)})
-         top-categories)))
-
+;; ===
 (defn -main [ & args ]
 
-  (let [
-        ;; top-page (get-page "http://lazada.com.ph")
-        ;; top-categories (get-top-categories top-page)
-        ;; top-category-names (get-top-category-names top-categories)
-        ;; top-siblings (get-top-siblings top-categories)
-
-        tree-root (build-tree-root "http://lazada.com.ph")
+  (let [tree-root (top/build-tree-root (get-page "http://lazada.com.ph"))
+        sub-tree (build-sub-tree tree-root)
 
         ;; ... foreach .navLayer, get sub-category (.bsnch, .bsnclco) **structure**
 

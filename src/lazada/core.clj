@@ -32,21 +32,22 @@
   (html/select subindex [:#productsCatalog :li :ul.subGroupProducts :li.unit :.itm :a.itm-link]))
 
 (def sublink-names (map #(-> % :attrs :title)
-                        core/sublinks))
+                        sublinks))
 
 ;; record first 5 in each category
 (def sublink-first-five (take 5 sublink-names))
 
 
 ;; export to edn, json, html
-(spit "xx.edn" (with-out-str (pprint xx)))
-(spit "xx.json" (with-out-str (pprint (json/write-str {:a 1 :b 2}))))
+#_(require '[clojure.pprint :refer :all])
+#_(spit "xx.edn" (with-out-str (pprint xx)))
+#_(spit "xx.json" (with-out-str (pprint (json/write-str {:a 1 :b 2}))))
 
 
 
 ;; crawl lazada.com.ph. recursively pull in all pages, record
 ;;   i. top category (.catArrow)
-;;   ii. sub-category (.bsnch, .bsnclco)
+;;   ii. sub-category (.bsnch, .bsnclco) ** discard if there's an .sbncco (not a category)
 ;;   iii. target category (.bsncLink)
 
 
