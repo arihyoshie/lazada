@@ -2,45 +2,25 @@
   (:import java.net.URL)
   (:require [net.cgrand.enlive-html :as html]
             [clojure.data.json :as json]
-            [clojure.walk :as walk]
             [lazada.core :as core]
             [lazada.top :as top]
             [lazada.sub :as sub]
-            [lazada.leaf :as leaf]))
+            [lazada.leaf :as leaf]
+            [lazada.crawl :as crawl]))
 
 
-(defn crawl-load [url node]
-  (let [uri (:href node)
-        url-full (str url uri)]
-    (core/get-page url-full)))
+(defn process
 
-(defn crawl-collect [url node]
+  ([] (process "http://lazada.com.ph"))
+  ([url]
+     (let [u (if url url "http://lazada.com.ph")
 
-  (let [crawled-page (crawl-load url node)
-        itm-links (html/select crawled-page
-                               [:#productsCatalog :li :ul.subGroupProducts :li.unit :.itm :a.itm-link])
-        itm-names (map #(-> % :attrs :title)
-                       itm-links)
-        itm-first-five (take 5 itm-names)]
+           tree-root (top/build-tree-root (core/get-page u))
+           sub-raw (sub/build-sub-raw tree-root)
+           sub-mid (sub/build-sub-mid sub-raw)
+           sub-leaves (leaf/fillin-leaves sub-mid)
+           crawled-leaves (crawl/crawl-leaves u sub-leaves)]
 
-    (assoc node :top5 itm-first-five)))
+       crawled-leaves)))
 
-(defn crawl-leaves [url tree]
-  (walk/postwalk (fn [inp]
-                   (if (and (map? inp)
-                            (:leaf inp))
-                     (crawl-collect url inp)
-                     inp))
-                 tree))
-
-(defn -main [ & args ]
-
-  (let [url "http://lazada.com.ph"
-
-        tree-root (top/build-tree-root (core/get-page url))
-        sub-raw (sub/build-sub-raw tree-root)
-        sub-mid (sub/build-sub-mid sub-raw)
-        sub-leaves (leaf/fillin-leaves sub-mid)
-        crawled-leaves (crawl-leaves url sub-leaves)]
-
-    ))
+(defn -main [ & args ] )
