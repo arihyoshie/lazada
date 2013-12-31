@@ -29,21 +29,52 @@
 
     (remove highlight-check sub-categories)))
 
-(defn build-sub-tree [tree]
 
+(defn build-sub-node [node]
+
+  (let [children (:children node)]
+
+    (if (nil? children)
+      node
+      (let [;; category title & contents immediately below it
+            cat-title  (map (fn [inp] {:title (html/text inp)})
+                            (html/select children [:.bsnch]))
+
+            cat-contents (map (fn [inp] {:content inp})
+                              (html/select children [(html/left :.bsnch)]))
+
+            paired-cats (map #(merge (first %) (second %))
+                             (seq (zipmap cat-title cat-contents)))]
+
+        (assoc node :children paired-cats)))))
+
+(defn build-sub-tree [tree]
+  (reduce (fn [rslt ech]
+            (let [new-child (assoc ech :children (build-sub-node (:children ech)))]
+              (conj rslt new-child)))
+            []
+            tree))
+
+
+(defn build-sub-raw [tree]
   (let [getsub-fn (fn [inp]
                     (assoc inp
                       :children
                       (get-sub-categories (:children inp))))]
 
-    (map getsub-fn tree-root)))
+    (map getsub-fn tree)))
 
+#_(def blinks
+  (html/select
+   nl
+   [:.navLayer :> :.navLayerSub :> [[:div (html/attr-starts :class "sbnc")]] :> :.bsnclco :> :a.bsncLink]))
 
 ;; ===
 (defn -main [ & args ]
 
   (let [tree-root (top/build-tree-root (get-page "http://lazada.com.ph"))
-        sub-tree (build-sub-tree tree-root)
+        sub-raw (build-sub-raw tree-root)
+        sub-tree (build-sub-tree sub-raw)
 
         ;; ... foreach .navLayer, get sub-category (.bsnch, .bsnclco) **structure**
 
