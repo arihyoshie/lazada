@@ -30,11 +30,17 @@
     (assoc node :content am)))
 
 (defn fillin-leaves [tree]
-  (reduce (fn [rslt ech]
-            (let [new-child (fillin-leaf ech)]
-              (conj rslt new-child)))
+
+  (let [leaf-fn (fn [r1 e1]
+                  (conj r1 (fillin-leaf e1)))]
+
+    (reduce (fn [r2 e2]
+              (let [kids (:children e2)
+                    leaf-kids (reduce leaf-fn [] kids)]
+
+                (conj r2 (assoc e2 :children leaf-kids))))
             []
-            tree))
+            tree)))
 
 
 #_(def four (nth sub-mid 3))
@@ -50,6 +56,7 @@
   (let [tree-root (top/build-tree-root (get-page "http://lazada.com.ph"))
         sub-raw (sub/build-sub-raw tree-root)
         sub-mid (sub/build-sub-mid sub-raw)
+        sub-leaves (fillin-leaves sub-mid)
 
         ;; ... foreach .navLayer, get sub-category (.bsnch, .bsnclco) **structure**
 
