@@ -2,7 +2,8 @@
   (:import java.net.URL)
   (:require [net.cgrand.enlive-html :as html]
             [clojure.data.json :as json]
-            [lazada.top :as top]))
+            [lazada.top :as top]
+            [lazada.sub :as sub]))
 
 
 (defn list-fns-in-ns [input-ns]
@@ -16,65 +17,39 @@
   (-> purl URL. html/html-resource))
 
 
-;; ===
-(defn get-sub-categories [nodes]
 
-  (let [sub-categories (html/select
-                        nodes
-                        [:.navLayer :> :.navLayerSub :> [[:div (html/attr-starts :class "sbnc")]]])
+(defn fillin-leaf [node]
 
-        ;; discard if there's an .sbncco (not a category)
-        highlight-check #(> 0
-                            (count (html/select % [:.sbncco])))]
+  (let [content (-> node :content)
+        as (html/select content [:.bsnclco :> :a.bsncLink])
+        am (map (fn [inp]
+                  {:leaf (-> inp :content first)
+                   :href (-> inp :attrs :href)})
+                as)]
 
-    (remove highlight-check sub-categories)))
+    (assoc node :content am)))
 
-
-(defn build-sub-node [node]
-
-  (let [children (:children node)]
-
-    (if (nil? children)
-      node
-      (let [;; category title & contents immediately below it
-            cat-title  (map (fn [inp] {:title (html/text inp)})
-                            (html/select children [:.bsnch]))
-
-            cat-contents (map (fn [inp] {:content inp})
-                              (html/select children [(html/left :.bsnch)]))
-
-            paired-cats (map #(merge (first %) (second %))
-                             (seq (zipmap cat-title cat-contents)))]
-
-        (assoc node :children paired-cats)))))
-
-(defn build-sub-tree [tree]
+(defn fillin-leaves [tree]
   (reduce (fn [rslt ech]
-            (let [new-child (build-sub-node ech)]
+            (let [new-child (fillin-leaf ech)]
               (conj rslt new-child)))
             []
             tree))
 
 
-(defn build-sub-raw [tree]
-  (let [getsub-fn (fn [inp]
-                    (assoc inp
-                      :children
-                      (get-sub-categories (:children inp))))]
-
-    (map getsub-fn tree)))
-
+#_(def four (nth sub-mid 3))
 #_(def blinks
   (html/select
    nl
    [:.navLayer :> :.navLayerSub :> [[:div (html/attr-starts :class "sbnc")]] :> :.bsnclco :> :a.bsncLink]))
 
+
 ;; ===
 (defn -main [ & args ]
 
   (let [tree-root (top/build-tree-root (get-page "http://lazada.com.ph"))
-        sub-raw (build-sub-raw tree-root)
-        sub-tree (build-sub-tree sub-raw)
+        sub-raw (sub/build-sub-raw tree-root)
+        sub-mid (sub/build-sub-mid sub-raw)
 
         ;; ... foreach .navLayer, get sub-category (.bsnch, .bsnclco) **structure**
 
