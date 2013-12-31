@@ -1,10 +1,12 @@
-# lazada
+# Lazada
 
-A Clojure library designed to ... well, that part is up to you.
+Site crawler and categorizer for Lazada.com.ph
+
 
 ## Usage
 
-FIXME
+Running `java lazada.jar` should do the trick.
+
 
 ## License
 

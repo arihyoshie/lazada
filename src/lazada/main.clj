@@ -23,4 +23,5 @@
 
        crawled-leaves)))
 
-(defn -main [ & args ] )
+(defn -main [ & args ]
+  (process (first args)))
